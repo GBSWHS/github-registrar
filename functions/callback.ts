@@ -35,7 +35,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
   }).then((res) => res.json() as any)
 
-  await fetch('https://api.github.com/orgs/GBSWHS/invitations', {
+  const res = await fetch('https://api.github.com/orgs/GBSWHS/invitations', {
     method: 'POST',
     headers: {
       Accept: 'application/vnd.github.v3+json',
@@ -46,7 +46,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     body: JSON.stringify({
       invitee_id: login
     })
-  })
+  }).then((res) => res.json())
+
+  console.log(res)
 
   return Response.redirect('https://github.com/orgs/GBSWHS/invitation')
 }
