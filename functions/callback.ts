@@ -5,7 +5,7 @@ interface Env {
   IP_WHITELIST: string
 }
 
-export const onRequestGET: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (request.headers.get("CF-Connecting-IP") !== env.IP_WHITELIST) {
     return new Response('인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.')
   }
