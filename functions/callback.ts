@@ -26,7 +26,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     })
   }).then((res) => res.json() as any)
 
-  const { login } = await fetch('https://api.github.com/user', {
+  const { id } = await fetch('https://api.github.com/user', {
     headers: {
       'X-GitHub-Api-Version': '2022-11-28',
       Accept: 'application/vnd.github+json',
@@ -35,7 +35,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
   }).then((res) => res.json() as any)
 
-  const res = await fetch('https://api.github.com/orgs/GBSWHS/invitations', {
+  await fetch('https://api.github.com/orgs/GBSWHS/invitations', {
     method: 'POST',
     headers: {
       Accept: 'application/vnd.github.v3+json',
@@ -44,11 +44,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
     },
     body: JSON.stringify({
-      invitee_id: login
+      invitee_id: id
     })
-  }).then((res) => res.json())
+  })
 
-  console.log(res)
 
   return Response.redirect('https://github.com/orgs/GBSWHS/invitation')
 }
