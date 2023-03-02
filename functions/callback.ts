@@ -16,7 +16,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     method: 'POST',
     headers: {
       Accept: 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
     },
     body: JSON.stringify({
       client_id: env.CLIENT_ID,
@@ -29,7 +30,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     headers: {
       'X-GitHub-Api-Version': '2022-11-28',
       Accept: 'application/vnd.github+json',
-      Authorization: `${token_type} ${access_token}`
+      Authorization: `${token_type} ${access_token}`,
+      'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
     }
   }).then((res) => res.json() as any)
 
@@ -38,7 +40,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     headers: {
       Accept: 'application/vnd.github.v3+json',
       Authorization: `token ${env.GITHUB_TOKEN}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
     },
     body: JSON.stringify({
       invitee_id: login
@@ -47,4 +50,3 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   return Response.redirect('https://github.com/orgs/GBSWHS/invitation')
 }
-  // Response.redirect('https://github.com/login/oauth/authorize?client_id=' + env.CLIENT_ID)
