@@ -1,7 +1,7 @@
 export class Fetcher {
   private url?: string
   private method: string = 'GET'
-  private readonly headers: Map<string, string>
+  private readonly headers = new Map<string, string>()
   private jsonBody: any
 
   public setURL (url: string): void {
