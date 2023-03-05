@@ -1,53 +1,59 @@
-interface Env {
-  CLIENT_ID: string
-  CLIENT_SECRET: string
-  GITHUB_TOKEN: string
-  IP_WHITELIST: string
+import type { EnvVariables } from './models/EnvVariables'
+import { FetcherProxy } from './models/FetcherProxy'
+
+export const onRequestGet: PagesFunction<EnvVariables> = async ({ request, env }) => {
+  if (isWhitelistedIP(request, env.IP_WHITELIST))
+    return createNotWhitelistedResponse()
+
+  await createInvitationByUserId(
+    await getUserIdFromAccessToken(
+      await getAccessTokenFromCode(
+        getCodeParam(request), env)), env)
+
+  return createRedirectionResponse()
 }
 
-export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-  if (request.headers.get("CF-Connecting-IP") !== env.IP_WHITELIST) {
-    return new Response('인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.')
-  }
+const getCodeParam = (request: Request): string =>
+  new URL(request.url).searchParams.get('code') ?? ''
 
-  const url = new URL(request.url)
-
-  const { token_type, access_token } = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
-    },
-    body: JSON.stringify({
+const getAccessTokenFromCode = async (code: string, env: EnvVariables): Promise<string> =>
+  await new FetcherProxy()
+    .useBasicHeaders()
+    .useGetAccessTokenEndpoint()
+    .useJSONPostBody({
       client_id: env.CLIENT_ID,
       client_secret: env.CLIENT_SECRET,
-      code: url.searchParams.get('code')
+      code
     })
-  }).then((res) => res.json() as any)
+    .getFetcher()
+    .fetch()
+    .then((res) => res.access_token)
 
-  const { id } = await fetch('https://api.github.com/user', {
-    headers: {
-      'X-GitHub-Api-Version': '2022-11-28',
-      Accept: 'application/vnd.github+json',
-      Authorization: `${token_type} ${access_token}`,
-      'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
-    }
-  }).then((res) => res.json() as any)
+const getUserIdFromAccessToken = async (accessToken: string): Promise<number> =>
+  await new FetcherProxy()
+    .useBasicHeaders()
+    .useGetUserInfoEndpoint()
+    .useBearerAuthorization(accessToken)
+    .getFetcher()
+    .fetch()
+    .then((res) => res.id)
 
-  await fetch('https://api.github.com/orgs/GBSWHS/invitations', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/vnd.github.v3+json',
-      Authorization: `token ${env.GITHUB_TOKEN}`,
-      'Content-Type': 'application/json',
-      'User-Agent': 'GBSWHS github-registrar (https://github.com/GBSWHS/github-registrar)'
-    },
-    body: JSON.stringify({
-      invitee_id: id
+const createInvitationByUserId = async (userId: number, env: EnvVariables): Promise<void> =>
+  await new FetcherProxy()
+    .useBasicHeaders()
+    .useCreateInvitationEndpoint()
+    .useAPITokenAuthorization(env.GITHUB_TOKEN)
+    .useJSONPostBody({
+      invitee_id: userId
     })
-  })
+    .getFetcher()
+    .fetch()
 
+const isWhitelistedIP = (request: Request, whitelist: string): boolean =>
+  request.headers.get('CF-Connecting-IP') !== whitelist
 
-  return Response.redirect('https://github.com/orgs/GBSWHS/invitation')
-}
+const createNotWhitelistedResponse = (): Response =>
+  new Response('인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.')
+
+const createRedirectionResponse = (): Response =>
+  Response.redirect('https://github.com/orgs/GBSWHS/invitation')

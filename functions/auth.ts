@@ -1,6 +1,7 @@
-interface Env {
-  CLIENT_ID: string
-}
+import type { EnvVariables } from './models/EnvVariables'
 
-export const onRequestGet: PagesFunction<Env> = ({ env }) =>
-  Response.redirect('https://github.com/login/oauth/authorize?client_id=' + env.CLIENT_ID)
+export const onRequestGet: PagesFunction<EnvVariables> = ({ env }) =>
+  Response.redirect(getAuthorizeURL(env.CLIENT_ID))
+
+const getAuthorizeURL = (clientId: string): string =>
+  `https://github.com/login/oauth/authorize?client_id=${clientId}`
