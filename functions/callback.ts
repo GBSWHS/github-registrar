@@ -2,7 +2,7 @@ import type { EnvVariables } from './models/EnvVariables'
 import { FetcherProxy } from './models/FetcherProxy'
 
 export const onRequestGet: PagesFunction<EnvVariables> = async ({ request, env }) => {
-  if (isWhitelistedIP(request, env.IP_WHITELIST))
+  if (!isWhitelistedIP(request, env.IP_WHITELIST))
     return createNotWhitelistedResponse()
 
   await createInvitationByUserId(
@@ -12,6 +12,12 @@ export const onRequestGet: PagesFunction<EnvVariables> = async ({ request, env }
 
   return createRedirectionResponse()
 }
+
+const isWhitelistedIP = (request: Request, whitelist: string): boolean =>
+  request.headers.get('CF-Connecting-IP') === whitelist
+
+const createNotWhitelistedResponse = (): Response =>
+  new Response('인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.')
 
 const getCodeParam = (request: Request): string =>
   new URL(request.url).searchParams.get('code') ?? ''
@@ -48,12 +54,6 @@ const createInvitationByUserId = async (userId: number, env: EnvVariables): Prom
     })
     .getFetcher()
     .fetch()
-
-const isWhitelistedIP = (request: Request, whitelist: string): boolean =>
-  request.headers.get('CF-Connecting-IP') !== whitelist
-
-const createNotWhitelistedResponse = (): Response =>
-  new Response('인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.')
 
 const createRedirectionResponse = (): Response =>
   Response.redirect('https://github.com/orgs/GBSWHS/invitation')
