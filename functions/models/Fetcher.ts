@@ -27,7 +27,7 @@ export class Fetcher {
     const a = await fetch(this.url ?? '', this.getFetchOption())
       .then(this.parseJSONResponse)
 
-      console.log(a)
+      console.log(a, this.url, this.getFetchOption())
       return a
   }
 
