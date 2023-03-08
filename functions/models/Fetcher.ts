@@ -24,8 +24,11 @@ export class Fetcher {
     if (!this.isURLEntered())
       throw new Error('Fetcher url not defined')
 
-    return await fetch(this.url ?? '', this.getFetchOption())
+    const a = await fetch(this.url ?? '', this.getFetchOption())
       .then(this.parseJSONResponse)
+
+      console.log(a)
+      return a
   }
 
   private isURLEntered (): boolean {
