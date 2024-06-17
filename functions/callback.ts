@@ -3,7 +3,7 @@ import { FetcherProxy } from './models/FetcherProxy'
 
 export const onRequestGet: PagesFunction<EnvVariables> = async ({ request, env }) => {
   if (!isWhitelistedIP(request, env.IP_WHITELIST))
-    return createNotWhitelistedResponse(request, env.IP_WHITELIST)
+    return createNotWhitelistedResponse()
 
   await createInvitationByUserId(
     await getUserIdFromAccessToken(
@@ -16,10 +16,8 @@ export const onRequestGet: PagesFunction<EnvVariables> = async ({ request, env }
 const isWhitelistedIP = (request: Request, whitelist: string): boolean =>
   request.headers.get('CF-Connecting-IP') === whitelist
 
-const createNotWhitelistedResponse = (request: Request, whitelist: string): Response =>
-  new Response(
-    '인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.\n'+
-    `Expected: ${whitelist}, Found: ${request.headers.get('CF-Connecting-IP')}`)
+const createNotWhitelistedResponse = (): Response =>
+  new Response('인트라넷에 접속 할 수 없습니다. 코딩관 WIFI에 연결되어 있는지 확인해 주세요.')
 
 const getCodeParam = (request: Request): string =>
   new URL(request.url).searchParams.get('code') ?? ''
